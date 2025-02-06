@@ -1,24 +1,73 @@
 import React from 'react';
-import {Image, StyleSheet, TextInput, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  PermissionsAndroid,
+  Alert,
+} from 'react-native';
 import Input from '../components/Input';
+import RNFS from 'react-native-fs'; // Import react-native-fs
 
 const Main = () => {
-  const [userQuery, setUserQuery] = React.useState<string>('');
+  const [userQuery, setUserQuery] = React.useState<string>('welcome to imagine text');
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [width, setWidth] = React.useState<number>(200);
-  const [height, setHeight] = React.useState<number>(200);
+  const [width, setWidth] = React.useState<number>(2000);
+  const [height, setHeight] = React.useState<number>(2000);
   let seed = 42;
 
   const imgURL = `https://pollinations.ai/p/${encodeURIComponent(
     userQuery,
   )}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true`;
 
+  // Function to handle image download
+  const downloadImage = async () => {
+    try {
+      // Request storage permission (required for Android)
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Storage Permission Required',
+          message: 'This app needs access to your storage to download images.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        // Define the file path where the image will be saved
+        const downloadDest = `${RNFS.DownloadDirectoryPath}/image_${Date.now()}.jpg`;
+
+        // Start the download
+        const download = RNFS.downloadFile({
+          fromUrl: imgURL,
+          toFile: downloadDest,
+        });
+
+        // Wait for the download to complete
+        await download.promise;
+
+        // Show success message
+        Alert.alert('Success', `Image downloaded to ${downloadDest}`);
+      } else {
+        Alert.alert('Permission Denied', 'Storage permission is required to download images.');
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      Alert.alert('Error', 'Failed to download the image.');
+    }
+  };
+
   return (
     <View style={styles.mainContainer}>
       <View style={styles.imageContainer}>
         {userQuery && (
           <Image
-            source={{uri: imgURL}}
+            source={{ uri: imgURL }}
             style={styles.image}
             alt="image"
             onLoadStart={() => setIsLoading(true)}
@@ -36,7 +85,7 @@ const Main = () => {
         )}
       </View>
 
-      <View style={{backgroundColor: 'red', width: '100%', height: 'auto' }}>
+      <View style={{ width: '100%', height: 'auto' }}>
         <Input
           width={width}
           height={height}
@@ -53,6 +102,9 @@ const Main = () => {
           value={userQuery}
         />
       </View>
+      <TouchableOpacity style={styles.button} onPress={downloadImage}>
+        <Text style={styles.textWhite}>Download</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -64,7 +116,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#212428',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingTop: 50,
     paddingHorizontal: 20,
   },
@@ -73,13 +124,15 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '80%',
+    height: '70%',
     borderRadius: 5,
     aspectRatio: 1,
-    resizeMode: 'cover',
+    resizeMode: 'contain',
     backgroundColor: 'white',
   },
   imageloader: {
     width: '80%',
+    height: '80%',
     borderRadius: 5,
     aspectRatio: 1,
     resizeMode: 'cover',
@@ -105,9 +158,7 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: 'white',
+    backgroundColor: 'blue',
     width: '100%',
     marginVertical: 10,
     borderRadius: 10,

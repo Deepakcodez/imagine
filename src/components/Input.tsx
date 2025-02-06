@@ -1,4 +1,4 @@
-import {StyleSheet, TextInput, View} from 'react-native';
+import {StyleSheet, Text, TextInput, View} from 'react-native';
 import React from 'react';
 
 interface InputProps {
@@ -11,16 +11,22 @@ interface InputProps {
 const Input = ({width, height, setWidth, setHeight}: InputProps) => {
   return (
     <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        value={width.toString()}
-        onChange={e => setWidth(parseInt(e.nativeEvent.text))}
-      />
-      <TextInput
-        style={styles.input}
-        value={height.toString()}
-        onChange={e => setHeight(parseInt(e.nativeEvent.text))}
-      />
+      <View style={{width: '48%'}}>
+        <Text style={{color: 'white', paddingVertical: 10}}>Width</Text>
+        <TextInput
+          style={[styles.input, {width: '100%'}]}
+          value={width.toString()}
+          onChange={e => setWidth(parseInt(e.nativeEvent.text))}
+        />
+      </View>
+      <View style={{width: '48%'}}>
+        <Text style={{color: 'white', paddingVertical: 10}}>Height</Text>
+        <TextInput
+          style={[styles.input, {width: '100%'}]}
+          value={height.toString()}
+          onChange={e => setHeight(parseInt(e.nativeEvent.text))}
+        />
+      </View>
     </View>
   );
 };
